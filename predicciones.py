@@ -77,9 +77,9 @@ def ciclo_principal():
         try:
             # Procesar predicciones para todas las tablas
             tareas = [
-                ('datos_suelo', ['temperatura', 'humedad', 'PH'], 1, 'created_at', 20),  # Cada 20 segundos para probar
-                ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 1, 'created_at', 20),  # Cada 20 segundos para probar
-                ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 1, 'date', 20)  # Cada 20 segundos para probar
+                ('datos_suelo', ['temperatura', 'humedad', 'PH'], 7, 'created_at', 20),  # 7 días para datos de suelo
+                ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 7, 'created_at', 20),  # 7 días para datos de ambiente
+                ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 30, 'date', 20)  # 30 días para datos meteorológicos
             ]
             for tabla, variables, horizonte, columna_fecha, intervalo in tareas:
                 predicciones = entrenar_y_predecir(tabla, variables, horizonte, columna_fecha)
