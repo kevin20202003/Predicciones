@@ -106,9 +106,9 @@ def iniciar_predicciones():
     threading.Thread(target=ciclo_principal, daemon=True).start()  # Iniciar el ciclo de predicciones en un hilo separado
     return "Ciclo de predicciones iniciado"
 
-# Función para iniciar el servidor Flask
 def iniciar_flask():
     port = int(os.environ.get("PORT", 5000))  # Usar el puerto proporcionado por Render o 5000 por defecto
+    logging.info(f"Flask estará escuchando en el puerto {port}")  # Log para confirmar el puerto
     app.run(host='0.0.0.0', port=port)  # Escuchar en todas las interfaces de red y en el puerto adecuado
 
 # Iniciar el servidor Flask
