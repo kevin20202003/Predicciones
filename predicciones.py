@@ -4,6 +4,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 import joblib
 from sqlalchemy import create_engine
+import os
 import time
 import logging
 
@@ -11,7 +12,7 @@ import logging
 logging.basicConfig(filename='predicciones.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Configuración de conexión con SQLAlchemy
-db_uri = "mysql+mysqlconnector://u636023223_sensorwatch:SensorWatch99@mysql.hostinger.com/u636023223_invernadero"
+db_uri = os.getenv("DATABASE_URL")
 engine = create_engine(db_uri)
 
 def obtener_datos(tabla):
