@@ -11,9 +11,13 @@ import os
 import time
 import logging
 import threading  # Para ejecutar el ciclo de predicciones en un hilo separado
+from flask import Flask
 
 # Configuración de logging
 logging.basicConfig(filename='predicciones.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Crear la aplicación Flask
+app = Flask(__name__)
 
 # Configuración de conexión con SQLAlchemy
 db_uri = os.getenv("DATABASE_URL")
@@ -93,5 +97,8 @@ def ciclo_principal():
 
 # Iniciar el ciclo principal en un hilo separado
 if __name__ == "__main__":
-    logging.info("Iniciando ciclo de predicciones...")
+    # Ejecutar Flask en un puerto adecuado
+    port = int(os.environ.get("PORT", 5000))  # Usa el puerto proporcionado por Render o 5000 por defecto
+    # Ejecuta Flask en el puerto adecuado
     threading.Thread(target=ciclo_principal, daemon=True).start()  # Iniciar el ciclo de predicciones en un hilo separado
+    app.run(host="0.0.0.0", port=port)  # Asegúrate de que esté escuchando en todos los interfaces (0.0.0.0)
