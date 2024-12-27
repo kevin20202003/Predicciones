@@ -10,7 +10,6 @@ from sqlalchemy import create_engine
 import os
 import time
 import logging
-from flask import Flask
 import threading  # Para ejecutar el ciclo de predicciones en un hilo separado
 
 # Configuración de logging
@@ -92,26 +91,7 @@ def ciclo_principal():
             logging.info("Reintentando en 1 segundo...")
             time.sleep(1)  # Esperar 1 segundo en caso de error
 
-# Crear la aplicación Flask
-app = Flask(__name__)
-
-# Ruta para verificar que el servidor está corriendo
-@app.route('/')
-def home():
-    return "El servicio está corriendo"
-
-# Ruta para iniciar el ciclo de predicciones manualmente (por ejemplo, al llamar a esta ruta desde un navegador o POST)
-@app.route('/iniciar_predicciones', methods=['GET'])
-def iniciar_predicciones():
-    threading.Thread(target=ciclo_principal, daemon=True).start()  # Iniciar el ciclo de predicciones en un hilo separado
-    return "Ciclo de predicciones iniciado"
-
-def iniciar_flask():
-    port = int(os.environ.get("PORT", 5000))  # Usar el puerto proporcionado por Render o 5000 por defecto
-    logging.info(f"Flask estará escuchando en el puerto {port}")  # Log para confirmar el puerto
-    app.run(host='0.0.0.0', port=port)  # Escuchar en todas las interfaces de red y en el puerto adecuado
-
-# Iniciar el servidor Flask
+# Iniciar el ciclo principal en un hilo separado
 if __name__ == "__main__":
-    threading.Thread(target=iniciar_flask, daemon=True).start()  # Iniciar Flask en un hilo separado
-    logging.info("Flask está corriendo. El ciclo de predicciones puede iniciarse manualmente.")
+    logging.info("Iniciando ciclo de predicciones...")
+    threading.Thread(target=ciclo_principal, daemon=True).start()  # Iniciar el ciclo de predicciones en un hilo separado
