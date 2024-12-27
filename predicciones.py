@@ -49,7 +49,7 @@ def entrenar_y_predecir(tabla, variables, horizonte, columna_fecha):
     ultimos_datos = datos[variables].iloc[-horizonte:].values
     predicciones = modelo.predict(ultimos_datos)
 
-    fechas_futuras = [pd.Timestamp.now().replace(microsecond=0) + pd.Timedelta(days=i) for i in range(1, horizonte + 1)]
+    fechas_futuras = [pd.Timestamp.now().replace(microsecond=0) + pd.Timedelta(seconds=i * 20) for i in range(1, horizonte + 1)]
 
     predicciones_df = pd.DataFrame(predicciones, columns=variables)
     predicciones_df[columna_fecha] = fechas_futuras
@@ -73,20 +73,20 @@ def ciclo_principal():
         try:
             # Procesar predicciones para todas las tablas
             tareas = [
-                ('datos_suelo', ['temperatura', 'humedad', 'PH'], 7, 'created_at', 6 * 3600),  # Cada 6 horas
-                ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 7, 'created_at', 6 * 3600),  # Cada 6 horas
-                ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 30, 'date', 12 * 3600)  # Cada 12 horas
+                ('datos_suelo', ['temperatura', 'humedad', 'PH'], 1, 'created_at', 20),  # Cada 20 segundos para probar
+                ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 1, 'created_at', 20),  # Cada 20 segundos para probar
+                ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 1, 'date', 20)  # Cada 20 segundos para probar
             ]
             for tabla, variables, horizonte, columna_fecha, intervalo in tareas:
                 predicciones = entrenar_y_predecir(tabla, variables, horizonte, columna_fecha)
                 guardar_predicciones(tabla, predicciones, columna_fecha)
                 logging.info(f"Predicciones de la tabla {tabla} actualizadas.")
-            logging.info("Todas las tareas completadas. Esperando 6 horas...")
-            time.sleep(6 * 3600)  # Esperar 6 horas antes de la siguiente iteración
+            logging.info("Todas las tareas completadas. Esperando 20 segundos...")
+            time.sleep(20)  # Esperar 20 segundos antes de la siguiente iteración
         except Exception as e:
             logging.error(f"Error en el ciclo principal: {e}")
-            logging.info("Reintentando en 1 hora...")
-            time.sleep(3600)  # Esperar 1 hora en caso de error
+            logging.info("Reintentando en 1 segundo...")
+            time.sleep(1)  # Esperar 1 segundo en caso de error
 
 # Crear la aplicación Flask
 app = Flask(__name__)
