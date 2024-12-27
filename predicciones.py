@@ -7,6 +7,8 @@ from sqlalchemy import create_engine
 import os
 import time
 import logging
+from flask import Flask
+import threading  # Para ejecutar el ciclo de predicciones en un hilo separado
 
 # Configuración de logging
 logging.basicConfig(filename='predicciones.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -65,22 +67,43 @@ def guardar_predicciones(tabla, predicciones, columna_fecha):
             logging.error(f"Error al guardar predicciones en la tabla {tabla_predicciones}: {e}")
             raise
 
-# Ciclo principal con sincronización de tareas
-while True:
-    try:
-        # Procesar predicciones para todas las tablas
-        tareas = [
-            ('datos_suelo', ['temperatura', 'humedad', 'PH'], 7, 'created_at', 6 * 3600),  # Cada 6 horas
-            ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 7, 'created_at', 6 * 3600),  # Cada 6 horas
-            ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 30, 'date', 12 * 3600)  # Cada 12 horas
-        ]
-        for tabla, variables, horizonte, columna_fecha, intervalo in tareas:
-            predicciones = entrenar_y_predecir(tabla, variables, horizonte, columna_fecha)
-            guardar_predicciones(tabla, predicciones, columna_fecha)
-            logging.info(f"Predicciones de la tabla {tabla} actualizadas.")
-        logging.info("Todas las tareas completadas. Esperando 6 horas...")
-        time.sleep(6 * 3600)  # Esperar 6 horas antes de la siguiente iteración
-    except Exception as e:
-        logging.error(f"Error en el ciclo principal: {e}")
-        logging.info("Reintentando en 1 hora...")
-        time.sleep(3600)  # Esperar 1 hora en caso de error
+def ciclo_principal():
+    """Ciclo principal con sincronización de tareas."""
+    while True:
+        try:
+            # Procesar predicciones para todas las tablas
+            tareas = [
+                ('datos_suelo', ['temperatura', 'humedad', 'PH'], 7, 'created_at', 6 * 3600),  # Cada 6 horas
+                ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 7, 'created_at', 6 * 3600),  # Cada 6 horas
+                ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 30, 'date', 12 * 3600)  # Cada 12 horas
+            ]
+            for tabla, variables, horizonte, columna_fecha, intervalo in tareas:
+                predicciones = entrenar_y_predecir(tabla, variables, horizonte, columna_fecha)
+                guardar_predicciones(tabla, predicciones, columna_fecha)
+                logging.info(f"Predicciones de la tabla {tabla} actualizadas.")
+            logging.info("Todas las tareas completadas. Esperando 6 horas...")
+            time.sleep(6 * 3600)  # Esperar 6 horas antes de la siguiente iteración
+        except Exception as e:
+            logging.error(f"Error en el ciclo principal: {e}")
+            logging.info("Reintentando en 1 hora...")
+            time.sleep(3600)  # Esperar 1 hora en caso de error
+
+# Crear la aplicación Flask
+app = Flask(__name__)
+
+# Ruta para verificar que el servidor está corriendo
+@app.route('/')
+def home():
+    return "El servicio está corriendo"
+
+# Función para iniciar el servidor Flask en un hilo separado
+def iniciar_flask():
+    port = int(os.environ.get("PORT", 5000))  # Usar el puerto proporcionado por Render o 5000 por defecto
+    app.run(host='0.0.0.0', port=port)  # Escuchar en todas las interfaces de red y en el puerto adecuado
+
+# Iniciar el servidor Flask en un hilo separado para que no interfiera con el ciclo de predicciones
+flask_thread = threading.Thread(target=iniciar_flask)
+flask_thread.start()
+
+# Ejecutar el ciclo principal en el hilo principal
+ciclo_principal()
