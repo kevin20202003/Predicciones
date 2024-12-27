@@ -1,0 +1,7 @@
+services:
+  - type: background
+    name: predicciones
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python predicciones.py"
