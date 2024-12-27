@@ -1,3 +1,6 @@
+from dotenv import load_dotenv
+load_dotenv()  # Cargar las variables del archivo .env
+
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -15,6 +18,7 @@ logging.basicConfig(filename='predicciones.log', level=logging.INFO, format='%(a
 
 # Configuración de conexión con SQLAlchemy
 db_uri = os.getenv("DATABASE_URL")
+print(db_uri)  # Verificar que se cargó correctamente
 engine = create_engine(db_uri)
 
 def obtener_datos(tabla):
