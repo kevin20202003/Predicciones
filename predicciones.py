@@ -100,14 +100,18 @@ app = Flask(__name__)
 def home():
     return "El servicio está corriendo"
 
-# Función para iniciar el servidor Flask en un hilo separado
+# Ruta para iniciar el ciclo de predicciones manualmente (por ejemplo, al llamar a esta ruta desde un navegador o POST)
+@app.route('/iniciar_predicciones', methods=['GET'])
+def iniciar_predicciones():
+    threading.Thread(target=ciclo_principal, daemon=True).start()  # Iniciar el ciclo de predicciones en un hilo separado
+    return "Ciclo de predicciones iniciado"
+
+# Función para iniciar el servidor Flask
 def iniciar_flask():
     port = int(os.environ.get("PORT", 5000))  # Usar el puerto proporcionado por Render o 5000 por defecto
     app.run(host='0.0.0.0', port=port)  # Escuchar en todas las interfaces de red y en el puerto adecuado
 
-# Iniciar el servidor Flask en un hilo separado para que no interfiera con el ciclo de predicciones
-flask_thread = threading.Thread(target=iniciar_flask)
-flask_thread.start()
-
-# Ejecutar el ciclo principal en el hilo principal
-ciclo_principal()
+# Iniciar el servidor Flask
+if __name__ == "__main__":
+    threading.Thread(target=iniciar_flask, daemon=True).start()  # Iniciar Flask en un hilo separado
+    logging.info("Flask está corriendo. El ciclo de predicciones puede iniciarse manualmente.")
