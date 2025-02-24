@@ -6,7 +6,7 @@ app = Flask(__name__)
 
 logging.basicConfig(level=logging.DEBUG)
 
-@app.route('/ejecutar_predicciones', methods=['POST'])
+@app.route('/ejecutar_predicciones', methods=['GET'])
 def ejecutar_predicciones():
     try:
         # Ejecutar el script y capturar errores
