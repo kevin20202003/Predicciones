@@ -10,14 +10,9 @@ from sqlalchemy import create_engine
 import os
 import time
 import logging
-import threading  # Para ejecutar el ciclo de predicciones en un hilo separado
-from flask import Flask
 
 # Configuración de logging
 logging.basicConfig(filename='predicciones.log', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-# Crear la aplicación Flask
-app = Flask(__name__)
 
 # Configuración de conexión con SQLAlchemy
 db_uri = os.getenv("DATABASE_URL")
@@ -56,7 +51,9 @@ def entrenar_y_predecir(tabla, variables, horizonte, columna_fecha):
     ultimos_datos = datos[variables].iloc[-horizonte:].values
     predicciones = modelo.predict(ultimos_datos)
 
-    fechas_futuras = [pd.Timestamp.now().replace(microsecond=0) + pd.Timedelta(seconds=i * 20) for i in range(1, horizonte + 1)]
+    # Crear fechas futuras correctamente espaciadas por días
+    fecha_inicio = pd.Timestamp.now().replace(microsecond=0)
+    fechas_futuras = [fecha_inicio + pd.Timedelta(days=i) for i in range(1, horizonte + 1)]
 
     predicciones_df = pd.DataFrame(predicciones, columns=variables)
     predicciones_df[columna_fecha] = fechas_futuras
@@ -80,25 +77,21 @@ def ciclo_principal():
         try:
             # Procesar predicciones para todas las tablas
             tareas = [
-                ('datos_suelo', ['temperatura', 'humedad', 'PH'], 7, 'created_at', 20),  # 7 días para datos de suelo
-                ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 7, 'created_at', 20),  # 7 días para datos de ambiente
-                ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 30, 'date', 20)  # 30 días para datos meteorológicos
+                ('datos_suelo', ['temperatura', 'humedad', 'PH'], 7, 'created_at', 60),  # 7 días para datos de suelo
+                ('datos_ambiente', ['temperatura_amb', 'humedad_amb', 'lux'], 7, 'created_at', 60),  # 7 días para datos de ambiente
+                ('datos_meteorologicos', ['temp', 'humidity', 'pressure', 'wind_speed'], 30, 'date', 60)  # 30 días para datos meteorológicos
             ]
             for tabla, variables, horizonte, columna_fecha, intervalo in tareas:
                 predicciones = entrenar_y_predecir(tabla, variables, horizonte, columna_fecha)
                 guardar_predicciones(tabla, predicciones, columna_fecha)
                 logging.info(f"Predicciones de la tabla {tabla} actualizadas.")
-            logging.info("Todas las tareas completadas. Esperando 20 segundos...")
-            time.sleep(20)  # Esperar 20 segundos antes de la siguiente iteración
+            logging.info("Todas las tareas completadas. Esperando 60 segundos...")
+            time.sleep(60)  # Esperar 60 segundos antes de la siguiente iteración
         except Exception as e:
             logging.error(f"Error en el ciclo principal: {e}")
             logging.info("Reintentando en 1 segundo...")
             time.sleep(1)  # Esperar 1 segundo en caso de error
 
-# Iniciar el ciclo principal en un hilo separado
 if __name__ == "__main__":
-    # Ejecutar Flask en un puerto adecuado
-    port = int(os.environ.get("PORT", 5000))  # Usa el puerto proporcionado por Render o 5000 por defecto
-    # Ejecuta Flask en el puerto adecuado
-    threading.Thread(target=ciclo_principal, daemon=True).start()  # Iniciar el ciclo de predicciones en un hilo separado
-    app.run(host="0.0.0.0", port=port)  # Asegúrate de que esté escuchando en todos los interfaces (0.0.0.0)
+    logging.info("Iniciando el ciclo principal...")
+    ciclo_principal()
