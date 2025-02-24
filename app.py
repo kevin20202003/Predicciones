@@ -1,24 +1,19 @@
-from flask import Flask, request
-from celery import Celery
+from flask import Flask
+import subprocess
 
 app = Flask(__name__)
 
-# Configuración de Celery
-app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
-celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
-celery.conf.update(app.config)
-
-@celery.task
-def ejecutar_predicciones_task():
-    # Llamar al script de predicciones
-    result = subprocess.run(['python3', 'predicciones.py'], capture_output=True, text=True)
-    return result.stdout
-
 @app.route('/ejecutar_predicciones', methods=['POST'])
 def ejecutar_predicciones():
-    task = ejecutar_predicciones_task.apply_async()
-    return f'Predicciones en proceso... ID de tarea: {task.id}'
+    try:
+        # Llamar al script de predicciones directamente
+        result = subprocess.run(['python3', 'predicciones.py'], capture_output=True, text=True)
+        if result.returncode == 0:
+            return f"Predicciones ejecutadas correctamente. {result.stdout}", 200
+        else:
+            return f"Error al ejecutar el script: {result.stderr}", 500
+    except Exception as e:
+        return f"Error interno: {str(e)}", 500
 
 if __name__ == "__main__":
     app.run(debug=True)
