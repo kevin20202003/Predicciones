@@ -8,3 +8,5 @@ mysql-connector-python
 sqlalchemy
 python-dotenv
 gunicorn==20.1.0
+celery 
+redis

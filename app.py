@@ -1,16 +1,24 @@
-from flask import Flask
-import subprocess
+from flask import Flask, request
+from celery import Celery
 
 app = Flask(__name__)
 
-@app.route('/ejecutar_predicciones', methods=['GET'])
+# Configuración de Celery
+app.config['CELERY_BROKER_URL'] = 'redis://localhost:6379/0'
+app.config['CELERY_RESULT_BACKEND'] = 'redis://localhost:6379/0'
+celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
+celery.conf.update(app.config)
+
+@celery.task
+def ejecutar_predicciones_task():
+    # Llamar al script de predicciones
+    result = subprocess.run(['python3', 'predicciones.py'], capture_output=True, text=True)
+    return result.stdout
+
+@app.route('/ejecutar_predicciones', methods=['POST'])
 def ejecutar_predicciones():
-    try:
-        # Ejecutar el script en segundo plano
-        subprocess.Popen(['python3', 'predicciones.py'])
-        return "Predicciones están siendo procesadas en segundo plano.", 200
-    except Exception as e:
-        return str(e), 500
+    task = ejecutar_predicciones_task.apply_async()
+    return f'Predicciones en proceso... ID de tarea: {task.id}'
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=5000)
+    app.run(debug=True)
