@@ -209,3 +209,11 @@
 2025-02-24 13:15:49,112 - INFO - Predicciones guardadas exitosamente en la tabla datos_meteorologicos_predicciones.
 2025-02-24 13:15:49,271 - INFO - Predicciones de la tabla datos_meteorologicos actualizadas.
 2025-02-24 13:15:49,272 - INFO - Todas las tareas completadas. Esperando 60 segundos...
+2025-02-24 15:50:07,587 - INFO - Iniciando el ciclo principal...
+2025-02-24 15:50:12,571 - INFO - Predicciones guardadas exitosamente en la tabla datos_suelo_predicciones.
+2025-02-24 15:50:12,734 - INFO - Predicciones de la tabla datos_suelo actualizadas.
+2025-02-24 15:50:14,717 - INFO - Predicciones guardadas exitosamente en la tabla datos_ambiente_predicciones.
+2025-02-24 15:50:14,877 - INFO - Predicciones de la tabla datos_ambiente actualizadas.
+2025-02-24 15:50:20,160 - INFO - Predicciones guardadas exitosamente en la tabla datos_meteorologicos_predicciones.
+2025-02-24 15:50:20,321 - INFO - Predicciones de la tabla datos_meteorologicos actualizadas.
+2025-02-24 15:50:20,321 - INFO - Todas las tareas completadas. Esperando 60 segundos...
